@@ -5,11 +5,14 @@ const app = express()
 app.get('/', (req, res) => {
     res.send("Home page")
 })
-app.get('/about', (req, res) => {
-    res.send("about page")
+app.post('/about', (req, res) => {
+    res.send({
+        name: "vikash Khowal",
+        isMale: true
+    })
 })
-app.get('/contact', (req, res) => {
-    res.send("contact page")
+app.delete('/delete', (req, res) => {
+    res.send("Data deleted Successfully!!")
 })
 
 app.listen(3333, () => {
