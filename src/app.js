@@ -1,35 +1,36 @@
 const express = require('express');
 const app = express()
+const {connectDB} = require('./config/database')
 // const {adminAuth} = require('./middleware/auth')
+const { user } = require('./model/user')
 
-// app.use('/admin', adminAuth);  // this line auth check to go to routers
+app.use(express.json())
 
-// app.get('/admin/getAllData', (req, res) => {
-//     res.send("All Data Received!!")
-// })
+app.post("/userSignUp", async(req, res) => {
+    // const {firstName, lastName, email, password } = req.body;
 
-// app.get("/admin/allDataDeleted", (req, res) => {
-//     res.send("All Data Deleted!!")
-// })
+    
+    const User = new user(req.body)
 
-app.use("/", (err, req, res, next) => {
-    if (err) {
-        console.error(err.stack);
-        res.status(500).send("Something went wrong!!");
+    try{
+        await User.save();
+        res.send("Data Added SuucessFully!!")
+
     }
-});
-
-app.get('/user', (req, res, next) => {
-    try {
-        throw new Error("QQQQQQ");
-        res.send("Success!!");
+    catch(err){
+        res.status(400).send(err.message)
     }
-    catch (err) {
-        next(err);  // Pass the error to the global error handler
-    }
-});
+
+})
 
 
-app.listen(3333, () => {
-    console.log("Server is running on port 3333")
-}) 
+connectDB()
+    .then(() => {
+        console.log("DB Connection Established!!")
+        app.listen(3333, () => {
+            console.log("Server is running on port 3333")
+        }) 
+    })
+    .catch((err) => {
+        console.error("DB Connection Can Not Be esta" + err)
+    })
