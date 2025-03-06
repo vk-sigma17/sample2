@@ -22,7 +22,61 @@ app.post("/userSignUp", async(req, res) => {
     }
 
 })
+//  get userData by Email
+app.post("/getOne", async(req, res) => {
+    const userEmail = req.body.email;
+    try{
+        const getuser = await user.findOne({email: userEmail});
+        if(getuser.length === 0){
+            res.status(404).send("Something went wrong!!")
+        }
+        res.send(getuser);
+    }
+    catch(err){
+        res.status(400).send("something went wrong!!")
+    }
+})
 
+// getAll Feed
+app.get("/getAll", async(req, res) => {
+    try{
+        const allUsers = await user.find({});
+        if(allUsers.length === 0){
+            res.status(404).send("something Went wrong!!")
+        }
+        res.send(allUsers)
+    }
+    catch(err){
+        res.status(400).send("something went wrong!!")
+    }
+})
+
+// delete one user
+app.delete("/deleteOne", async(req, res) => {
+    const userId = req.body.userId;
+    try{
+        await user.findByIdAndDelete({_id: userId});
+        res.send("user Deleted!!")
+    }
+    catch(err){
+        res.status(400).send("Something went wrong!!")
+    }
+})
+
+app.patch("/updateOne", async(req, res) => {
+    const userId = req.body.userId;
+    const updateData = req.body;
+    try{
+        const updatedUser = await user.findByIdAndUpdate({_id: userId}, updateData,
+            {new : true} // now console will give updated user
+        );
+        res.send("user Updated!!");
+        console.log(updatedUser);
+    }
+    catch(err){
+        res.status(400).send("Something went wrong!!")
+    }
+})
 
 connectDB()
     .then(() => {
