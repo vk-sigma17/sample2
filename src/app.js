@@ -6,9 +6,12 @@ const {connectDB} = require('./config/database')
 const { user } = require('./model/user')
 const validateSignupData = require('./utils/validation')
 const bcrypt = require('bcrypt'); // or 'bcrypt' if you are using that
+const cookieParser = require('cookie-parser');
+const jwt = require("jsonwebtoken")
 
 
 app.use(express.json())
+app.use(cookieParser())
 
 app.post("/userSignUp", async(req, res) => {
     
@@ -42,13 +45,43 @@ app.post("/login", async(req, res) => {
         const ValidPassword = await bcrypt.compare(password, oneUser.password)
         if(!ValidPassword){
             throw new Error("password is not valid!!")
+        }else {
+
+            const token = jwt.sign({_id: oneUser._id}, "vikash@12334");
+            res.cookie('token', token);
+            // console.log(token);
+            res.send(`${oneUser.firstName}, Login Successfully`)
+            // res.status(200).send(`${oneUser.firstName} User Login Successfully`);
         }
-        res.send(`${oneUser.firstName}, Login Successfully`)
-        // res.status(200).send(`${oneUser.firstName} User Login Successfully`);
 
     }
     catch(err){
         res.status(400).send("Invalid Credientials!!!")
+    }
+})
+
+// Get Profile
+app.get("/profile", async(req, res, next) => {
+    try{
+        const { token } = req.cookies;
+        if(!token){
+            throw new Error("No Token Found!")
+        }
+        const decodedObj = jwt.verify(token, 'vikash@12334');
+        console.log("decodedObj", decodedObj);
+        const {_id} = decodedObj;
+        const getUser = await user.findById(_id);
+        console.log("getuser", getUser)
+        if(!getUser){
+            throw new Error("No User Found!!");
+        }
+        // res.user = user;
+        // next()
+        res.send(getUser)
+
+    }
+    catch(err){
+        res.status(400).send("ERROR :" + err.message)
     }
 })
 

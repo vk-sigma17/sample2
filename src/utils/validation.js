@@ -1,3 +1,4 @@
+
 const validation = require('validator');
 
 const validateSignupData = (req) => {
