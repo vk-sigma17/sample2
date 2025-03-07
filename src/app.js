@@ -2,16 +2,20 @@ const express = require('express');
 const app = express()
 const {connectDB} = require('./config/database')
 // const {adminAuth} = require('./middleware/auth')
+
 const { user } = require('./model/user')
+const validateSignupData = require('./utils/validation')
+const bcrypt = require('bcrypt'); // or 'bcrypt' if you are using that
+
 
 app.use(express.json())
 
 app.post("/userSignUp", async(req, res) => {
-    // const {firstName, lastName, email, password } = req.body;
-
     
-    const User = new user(req.body)
-
+    validateSignupData(req)
+    const {firstName, lastName, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const User = new user({firstName, lastName, email, password: hashedPassword})
     try{
         await User.save();
         res.send("Data Added SuucessFully!!")
@@ -22,6 +26,32 @@ app.post("/userSignUp", async(req, res) => {
     }
 
 })
+
+// login account
+app.post("/login", async(req, res) => {
+    try{
+        const { email, password} = req.body;
+         // Validate input
+         if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password are required' });
+        }
+        const oneUser = await user.findOne({email: email});
+        if(!oneUser){
+            throw new Error("Invalid Credentials");
+        }
+        const ValidPassword = await bcrypt.compare(password, oneUser.password)
+        if(!ValidPassword){
+            throw new Error("password is not valid!!")
+        }
+        res.send(`${oneUser.firstName}, Login Successfully`)
+        // res.status(200).send(`${oneUser.firstName} User Login Successfully`);
+
+    }
+    catch(err){
+        res.status(400).send("Invalid Credientials!!!")
+    }
+})
+
 //  get userData by Email
 app.post("/getOne", async(req, res) => {
     const userEmail = req.body.email;
